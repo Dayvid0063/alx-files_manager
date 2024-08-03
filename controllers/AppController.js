@@ -5,8 +5,8 @@ import dbClient from '../utils/db';
 export default class AppController {
   static getStatus(req, res) {
     res.status(200).json({
-      rediscli: redisClient.isAlive(),
-      database: dbClient.isAlive(),
+      redis: redisClient.isAlive(),
+      db: dbClient.isAlive(),
     });
   }
 
