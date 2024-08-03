@@ -1,15 +1,12 @@
 import express from 'express';
-import dotenv from './utils/dotenv';
-import routes from './routes/index';
+import startapp from './dir/startapp';
+import Middlewares from './dir/middlewares';
+import router from './routes';
 
-dotenv.config();
+const server = express();
 
-const app = express();
-const PORT = process.env.PORT || 5000;
+Middlewares(server);
+router(server);
+startapp(server);
 
-// Load routes
-app.use('/', routes);
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+export default server;
