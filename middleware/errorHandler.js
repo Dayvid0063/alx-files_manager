@@ -9,6 +9,12 @@ export class APIError extends Error {
   }
 }
 
+/**
+ * @param {NextFunction} next
+ * @param {Request} req
+ * @param {Response} res
+ * @param {Error} err
+ */
 export const errorResponse = (err, req, res, next) => {
   const defaultMsg = `Failed to process ${req.url}`;
 

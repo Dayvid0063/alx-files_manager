@@ -12,7 +12,7 @@ import { Request, Response } from 'express';
 import { contentType } from 'mime-types';
 import mongoDBCore from 'mongodb/lib/core';
 import dbClient from '../utils/db';
-import verifyToken from '../middleware/VerifyToken';
+import { getTokenUser } from '../utils/authUtils';
 
 const VALID_FILE_TYPES = {
   folder: 'folder',
@@ -91,7 +91,6 @@ export default class FilesController {
     const baseDir = `${process.env.FOLDER_PATH || ''}`.trim().length > 0
       ? process.env.FOLDER_PATH.trim()
       : joinPath(tmpdir(), DEFAULT_ROOT_FOLDER);
-
     const newFile = {
       userId: new mongoDBCore.BSON.ObjectId(userId),
       name,
@@ -110,7 +109,7 @@ export default class FilesController {
     const insertionInfo = await (await dbClient.filesCollection())
       .insertOne(newFile);
     const fileId = insertionInfo.insertedId.toString();
-    // start thumbnail generation worker
+
     if (type === VALID_FILE_TYPES.image) {
       const jobName = `Image thumbnail [${userId}-${fileId}]`;
       fileQueue.add({ userId, fileId, name: jobName });
@@ -247,8 +246,12 @@ export default class FilesController {
     });
   }
 
+  /**
+   * @param {Request} req
+   * @param {Response} res
+   */
   static async getFile(req, res) {
-    const user = await verifyToken(req);
+    const user = await getTokenUser(req);
     const { id } = req.params;
     const size = req.query.size || null;
     const userId = user ? user._id.toString() : '';

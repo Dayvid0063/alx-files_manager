@@ -2,7 +2,13 @@
 import { Request, Response, NextFunction } from 'express';
 import { getAuthUser, getTokenUser } from '../utils/authUtils';
 
-export const basicAuthMiddleware = async (req, res, next) => {
+/**
+ * @param {NextFunction} next
+ * @param {Request} req
+ * @param {Response} res
+ */
+
+export const basicAuth = async (req, res, next) => {
   const user = await getAuthUser(req);
 
   if (!user) {
@@ -13,7 +19,7 @@ export const basicAuthMiddleware = async (req, res, next) => {
   next();
 };
 
-export const xTokenAuthMiddleware = async (req, res, next) => {
+export const authMiddleware = async (req, res, next) => {
   const user = await getTokenUser(req);
 
   if (!user) {

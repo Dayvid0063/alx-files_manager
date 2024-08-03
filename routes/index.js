@@ -1,10 +1,10 @@
 /* eslint-disable no-unused-vars */
-import express from 'express';
+import { Express } from 'express';
 import AppController from '../controllers/AppController';
 import UsersController from '../controllers/UsersController';
 import AuthController from '../controllers/AuthController';
 import FilesController from '../controllers/FilesController';
-import verifyToken from '../middleware/VerifyToken';
+import { authMiddleware, basicAuth } from '../middleware/authenticate';
 import { APIError, errorResponse } from '../middleware/errorHandler';
 
 const router = (api) => {
@@ -12,16 +12,16 @@ const router = (api) => {
   api.get('/stats', AppController.getStats);
 
   api.post('/users', UsersController.postNew);
-  api.get('/users/me', verifyToken, UsersController.getMe);
+  api.get('/users/me', authMiddleware, UsersController.getMe);
 
-  api.get('/connect', AuthController.getConnect);
-  api.get('/disconnect', verifyToken, AuthController.getDisconnect);
+  api.get('/connect', basicAuth, AuthController.getConnect);
+  api.get('/disconnect', authMiddleware, AuthController.getDisconnect);
 
-  api.post('/files', verifyToken, FilesController.postUpload);
-  api.get('/files/:id', verifyToken, FilesController.getShow);
-  api.get('/files', verifyToken, FilesController.getIndex);
-  api.put('/files/:id/publish', verifyToken, FilesController.putPublish);
-  api.put('/files/:id/unpublish', verifyToken, FilesController.putUnpublish);
+  api.post('/files', authMiddleware, FilesController.postUpload);
+  api.get('/files/:id', authMiddleware, FilesController.getShow);
+  api.get('/files', authMiddleware, FilesController.getIndex);
+  api.put('/files/:id/publish', authMiddleware, FilesController.putPublish);
+  api.put('/files/:id/unpublish', authMiddleware, FilesController.putUnpublish);
   api.get('/files/:id/data', FilesController.getFile);
 
   api.all('*', (req, res, next) => {
