@@ -4,24 +4,24 @@ import AppController from '../controllers/AppController';
 import UsersController from '../controllers/UsersController';
 import AuthController from '../controllers/AuthController';
 import FilesController from '../controllers/FilesController';
-import verifyToken from '../middleware/VerifyToken';
 import { APIError, errorResponse } from '../middleware/errorHandler';
+import { basicAuthMiddleware, xTokenAuthMiddleware } from '../middleware/authenticate';
 
 const router = (api) => {
   api.get('/status', AppController.getStatus);
   api.get('/stats', AppController.getStats);
 
   api.post('/users', UsersController.postNew);
-  api.get('/users/me', verifyToken, UsersController.getMe);
+  api.get('/users/me', xTokenAuthMiddleware, UsersController.getMe);
 
-  api.get('/connect', AuthController.getConnect);
-  api.get('/disconnect', verifyToken, AuthController.getDisconnect);
+  api.get('/connect', basicAuthMiddleware, AuthController.getConnect);
+  api.get('/disconnect', xTokenAuthMiddleware, AuthController.getDisconnect);
 
-  api.post('/files', verifyToken, FilesController.postUpload);
-  api.get('/files/:id', verifyToken, FilesController.getShow);
-  api.get('/files', verifyToken, FilesController.getIndex);
-  api.put('/files/:id/publish', verifyToken, FilesController.putPublish);
-  api.put('/files/:id/unpublish', verifyToken, FilesController.putUnpublish);
+  api.post('/files', xTokenAuthMiddleware, FilesController.postUpload);
+  api.get('/files/:id', xTokenAuthMiddleware, FilesController.getShow);
+  api.get('/files', xTokenAuthMiddleware, FilesController.getIndex);
+  api.put('/files/:id/publish', xTokenAuthMiddleware, FilesController.putPublish);
+  api.put('/files/:id/unpublish', xTokenAuthMiddleware, FilesController.putUnpublish);
   api.get('/files/:id/data', FilesController.getFile);
 
   api.all('*', (req, res, next) => {
