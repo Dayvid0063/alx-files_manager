@@ -57,6 +57,10 @@ const isValidId = (id) => {
 };
 
 export default class FilesController {
+  /**
+   * @param {Request} req
+   * @param {Response} res
+   */
   static async postUpload(req, res) {
     const { user } = req;
     const name = req.body ? req.body.name : null;
@@ -157,6 +161,10 @@ export default class FilesController {
     });
   }
 
+  /**
+   * @param {Request} req
+   * @param {Response} res
+   */
   static async getIndex(req, res) {
     const { user } = req;
     const parentId = req.query.parentId || ROOT_FOLDER_ID.toString();
@@ -251,6 +259,10 @@ export default class FilesController {
     });
   }
 
+  /**
+   * @param {Request} req
+   * @param {Response} res
+   */
   static async getFile(req, res) {
     const user = await getTokenUser(req);
     const { id } = req.params;

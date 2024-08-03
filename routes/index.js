@@ -7,6 +7,10 @@ import FilesController from '../controllers/FilesController';
 import { authMiddleware, basicAuth } from '../middleware/authenticate';
 import { APIError, errorResponse } from '../middleware/errorHandler';
 
+/**
+ * @param {Express} api
+ */
+
 const router = (api) => {
   api.get('/status', AppController.getStatus);
   api.get('/stats', AppController.getStats);

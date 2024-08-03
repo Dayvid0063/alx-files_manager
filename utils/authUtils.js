@@ -34,6 +34,11 @@ export const getAuthUser = async (req) => {
   return user;
 };
 
+/**
+ * @param {Request} req
+ * @returns {Promise<{_id: ObjectId, email: string, password: string}>}
+ */
+
 export const getTokenUser = async (req) => {
   const token = req.headers['x-token'];
 
