@@ -1,8 +1,7 @@
-import sha1 from 'sha1';
 import { ObjectId } from 'mongodb';
+import sha1 from 'sha1';
+import Auth from '../authentication/authentication';
 import dbClient from '../utils/db';
-// eslint-disable-next-line import/no-named-as-default
-import redisClient from '../utils/redis';
 
 export default class UsersController {
   static async postNew(req, res) {
@@ -42,8 +41,7 @@ export default class UsersController {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const key = `auth_${token}`;
-    const userId = await redisClient.get(key);
+    const userId = await Auth.getUserIdByToken(token);
 
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' });
