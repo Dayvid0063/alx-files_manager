@@ -14,6 +14,11 @@ import mongoDBCore from 'mongodb/lib/core';
 import dbClient from '../utils/db';
 import { getTokenUser } from '../utils/authUtils';
 
+/**
+ * @param {Request} req
+ * @param {Response} res
+ */
+
 const VALID_FILE_TYPES = {
   folder: 'folder',
   file: 'file',
@@ -246,10 +251,6 @@ export default class FilesController {
     });
   }
 
-  /**
-   * @param {Request} req
-   * @param {Response} res
-   */
   static async getFile(req, res) {
     const user = await getTokenUser(req);
     const { id } = req.params;
