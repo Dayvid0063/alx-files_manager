@@ -5,6 +5,7 @@ import UsersController from '../controllers/UsersController';
 import AuthController from '../controllers/AuthController';
 import FilesController from '../controllers/FilesController';
 import verifyToken from '../middleware/VerifyToken';
+import { APIError, errorResponse } from '../middleware/errorHandler';
 
 const router = (api) => {
   api.get('/status', AppController.getStatus);
@@ -22,6 +23,11 @@ const router = (api) => {
   api.put('/files/:id/publish', verifyToken, FilesController.putPublish);
   api.put('/files/:id/unpublish', verifyToken, FilesController.putUnpublish);
   api.get('/files/:id/data', FilesController.getFile);
+
+  api.all('*', (req, res, next) => {
+    errorResponse(new APIError(404, `Cannot ${req.method} ${req.url}`), req, res, next);
+  });
+  api.use(errorResponse);
 };
 
 export default router;
