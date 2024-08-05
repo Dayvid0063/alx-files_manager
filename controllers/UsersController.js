@@ -3,24 +3,21 @@ import { ObjectId } from 'mongodb';
 import dbClient from '../utils/db';
 // eslint-disable-next-line import/no-named-as-default
 import redisClient from '../utils/redis';
-import userQueue from '../worker';
+import { userQueue } from '../worker';
 
 export default class UsersController {
   static async postNew(req, res) {
     const { email, password } = req.body;
-
     if (!email) {
       return res.status(400).json({ error: 'Missing email' });
     }
     if (!password) {
       return res.status(400).json({ error: 'Missing password' });
     }
-
     const existingUser = await dbClient.db.collection('users').findOne({ email });
     if (existingUser) {
       return res.status(400).json({ error: 'Already exist' });
     }
-
     const hashedPassword = sha1(password);
     const newUser = {
       email,
@@ -30,11 +27,9 @@ export default class UsersController {
     try {
       const result = await dbClient.db.collection('users').insertOne(newUser);
       const userId = result.insertedId;
-
-      // Add the new user to the userQueue for background processing
       await userQueue.add({ userId });
 
-      return res.status(201).json({ id: userId, email });
+      return res.status(201).json({ id: result.insertedId, email });
     } catch (error) {
       return res.status(500).json({ error: 'Error saving the user' });
     }
