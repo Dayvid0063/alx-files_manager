@@ -3,7 +3,6 @@ import { ObjectId } from 'mongodb';
 import dbClient from '../utils/db';
 // eslint-disable-next-line import/no-named-as-default
 import redisClient from '../utils/redis';
-import { userQueue } from '../worker';
 
 export default class UsersController {
   static async postNew(req, res) {
@@ -26,8 +25,6 @@ export default class UsersController {
 
     try {
       const result = await dbClient.db.collection('users').insertOne(newUser);
-      const userId = result.insertedId;
-      await userQueue.add({ userId });
 
       return res.status(201).json({ id: result.insertedId, email });
     } catch (error) {
