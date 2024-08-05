@@ -55,41 +55,36 @@ export default class FilesController {
   }
 
   static async getShow(req, res) {
-    const fileId = req.params.id;
-    const userId = req.user._id;
+    const { id } = req.params;
 
     try {
-      const fileDocument = await dbClient.db.collection('files').findOne({
-        _id: ObjectId(fileId),
-        userId,
-      });
+      const file = await dbClient.db.collection('files').findOne({ _id: ObjectId(id), userId: req.user._id });
 
-      if (!fileDocument) {
-        return handleError(res, 404, errorMessages.notFound);
+      if (!file) {
+        return handleError(res, 404, 'Not found');
       }
 
-      return res.status(200).json(fileDocument);
+      return res.status(200).json(file);
     } catch (error) {
-      return handleError(res, 500, 'Internal Server Error');
+      return handleError(res, 500, 'Error retrieving the file');
     }
   }
 
   static async getIndex(req, res) {
-    const userId = req.user._id;
-    const parentId = req.query.parentId || 0;
-    const page = parseInt(req.query.page, 10) || 0;
-    const pageSize = 20;
+    const { parentId = '0', page = 0 } = req.query;
+    const limit = 20;
+    const skip = parseInt(page, 10) * limit;
 
     try {
       const files = await dbClient.db.collection('files').aggregate([
-        { $match: { userId, parentId: ObjectId(parentId) } },
-        { $skip: page * pageSize },
-        { $limit: pageSize },
+        { $match: { userId: req.user._id, parentId } },
+        { $skip: skip },
+        { $limit: limit },
       ]).toArray();
 
       return res.status(200).json(files);
     } catch (error) {
-      return handleError(res, 500, 'Internal Server Error');
+      return handleError(res, 500, 'Error retrieving files');
     }
   }
 }
