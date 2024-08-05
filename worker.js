@@ -1,24 +1,20 @@
-/* eslint-disable no-unused-vars */
 import Bull from 'bull';
 import { ObjectId } from 'mongodb';
 import fs from 'fs';
 import imageThumbnail from 'image-thumbnail';
-import path from 'path';
 import dbClient from './utils/db';
-import { handleError, errorMessages } from './helper/errorHandler';
 
 // Create a Bull queue for file processing
 const fileQueue = new Bull('fileQueue', {
   redis: {
     host: '127.0.0.1',
-    port: 6379,
+    port: 8000,
   },
 });
 
 fileQueue.process(async (job) => {
   const { userId, fileId } = job.data;
 
-  // Validate job data
   if (!fileId) {
     throw new Error('Missing fileId');
   }
@@ -52,4 +48,31 @@ fileQueue.process(async (job) => {
   }
 });
 
-export default fileQueue;
+// Create a Bull queue for user processing
+const userQueue = new Bull('userQueue', {
+  redis: {
+    host: '127.0.0.1',
+    port: 8000,
+  },
+});
+
+userQueue.process(async (job) => {
+  const { userId } = job.data;
+
+  if (!userId) {
+    throw new Error('Missing userId');
+  }
+
+  // Find the user document in the database
+  const userDocument = await dbClient.db.collection('users').findOne({
+    _id: ObjectId(userId),
+  });
+
+  if (!userDocument) {
+    throw new Error('User not found');
+  }
+
+  console.log(`Welcome ${userDocument.email}!`);
+});
+
+export { fileQueue, userQueue };
