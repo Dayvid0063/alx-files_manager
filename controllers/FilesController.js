@@ -4,6 +4,7 @@ import fs from 'fs';
 import dbClient from '../utils/db';
 import { generateFilePath, saveFile } from '../helper/fileHelper';
 import { handleError, errorMessages } from '../helper/errorHandler';
+import fileQueue from '../worker';
 
 export default class FilesController {
   static async postUpload(req, res) {
@@ -50,7 +51,17 @@ export default class FilesController {
 
     try {
       const result = await dbClient.db.collection('files').insertOne(fileDocument);
-      return res.status(201).json({ id: result.insertedId, ...fileDocument });
+      const fileId = result.insertedId;
+
+      // If the file type is image, add a job to the queue for processing thumbnails
+      if (type === 'image') {
+        await fileQueue.add({
+          userId: req.user._id,
+          fileId,
+        });
+      }
+
+      return res.status(201).json({ id: fileId, ...fileDocument });
     } catch (error) {
       return res.status(500).json({ error: 'Error saving the file' });
     }
@@ -150,6 +161,7 @@ export default class FilesController {
   static async getFile(req, res) {
     const fileId = req.params.id;
     const userId = req.user ? req.user._id : null;
+    const { size } = req.query;
 
     try {
       const fileDocument = await dbClient.db.collection('files').findOne({ _id: ObjectId(fileId) });
@@ -166,7 +178,12 @@ export default class FilesController {
         return handleError(res, 400, 'A folder doesn\'t have content');
       }
 
-      if (!fs.existsSync(fileDocument.localPath)) {
+      let filePath = fileDocument.localPath;
+      if (size && ['500', '250', '100'].includes(size)) {
+        filePath = filePath.replace(/(\.[^.]*)$/, `_${size}$1`);
+      }
+
+      if (!fs.existsSync(filePath)) {
         return handleError(res, 404, errorMessages.notFound);
       }
 
@@ -175,7 +192,7 @@ export default class FilesController {
         return handleError(res, 500, 'Error determining file MIME-type');
       }
 
-      const fileContent = fs.readFileSync(fileDocument.localPath);
+      const fileContent = fs.readFileSync(filePath);
 
       res.setHeader('Content-Type', mimeType);
       return res.status(200).send(fileContent);
