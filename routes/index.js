@@ -26,6 +26,8 @@ const router = (api) => {
 
   // Files
   api.post('/files', authenticateUser, FilesController.postUpload);
+  api.get('/files/:id', authenticateUser, FilesController.getShow);
+  api.get('/files', authenticateUser, FilesController.getIndex);
 
   api.use(handleError);
 };
