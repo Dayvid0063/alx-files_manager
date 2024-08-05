@@ -13,6 +13,7 @@ class DBClient {
     this.client = new MongoClient(link, { useUnifiedTopology: true });
     this.db = null;
 
+    // Connect to MongoDB
     this.client.connect()
       .then(() => {
         this.db = this.client.db(database);
@@ -25,6 +26,30 @@ class DBClient {
 
   isAlive() {
     return this.db !== null;
+  }
+
+  async nbUsers() {
+    if (!this.isAlive()) {
+      return 0;
+    }
+    try {
+      return await this.db.collection('users').countDocuments();
+    } catch (err) {
+      console.error('Failed to count users:', err);
+      return 0;
+    }
+  }
+
+  async nbFiles() {
+    if (!this.isAlive()) {
+      return 0;
+    }
+    try {
+      return await this.db.collection('files').countDocuments();
+    } catch (err) {
+      console.error('Failed to count files:', err);
+      return 0;
+    }
   }
 }
 

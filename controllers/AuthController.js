@@ -1,4 +1,8 @@
-import Auth from '../authentication/authentication';
+import { v4 as uuidv4 } from 'uuid';
+import sha1 from 'sha1';
+import dbClient from '../utils/db';
+// eslint-disable-next-line import/no-named-as-default
+import redisClient from '../utils/redis';
 
 export default class AuthController {
   static async getConnect(req, res) {
@@ -12,13 +16,17 @@ export default class AuthController {
     const decodedCredentials = Buffer.from(credentials, 'base64').toString();
     const [email, password] = decodedCredentials.split(':');
 
-    const user = await Auth.verifyCredentials(email, password);
+    const hashedPassword = sha1(password);
+    const user = await dbClient.db.collection('users').findOne({ email, password: hashedPassword });
 
     if (!user) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const token = await Auth.generateToken(user._id.toString());
+    const token = uuidv4();
+    const key = `auth_${token}`;
+    await redisClient.set(key, user._id.toString(), 86400);
+
     return res.status(200).json({ token });
   }
 
@@ -29,13 +37,14 @@ export default class AuthController {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const userId = await Auth.getUserIdByToken(token);
+    const key = `auth_${token}`;
+    const userId = await redisClient.get(key);
 
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    await Auth.deleteUserToken(token);
+    await redisClient.del(key);
     return res.status(204).send();
   }
 }

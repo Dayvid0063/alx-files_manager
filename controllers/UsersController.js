@@ -1,6 +1,6 @@
+// eslint-disable-next-line no-unused-vars
 import { ObjectId } from 'mongodb';
 import sha1 from 'sha1';
-import Auth from '../authentication/authentication';
 import dbClient from '../utils/db';
 
 export default class UsersController {
@@ -29,29 +29,9 @@ export default class UsersController {
 
     try {
       const result = await dbClient.db.collection('users').insertOne(newUser);
-      return res.status(201).json({ id: result.insertedId, email });
+      return res.status(201).json({ id: result.insertedId, email: result.ops[0].email });
     } catch (error) {
       return res.status(500).json({ error: 'Error saving the user' });
     }
-  }
-
-  static async getMe(req, res) {
-    const token = req.header('X-Token');
-    if (!token) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-
-    const userId = await Auth.getUserIdByToken(token);
-
-    if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-
-    const user = await dbClient.db.collection('users').findOne({ _id: ObjectId(userId) });
-    if (!user) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-
-    return res.status(200).json({ id: user._id, email: user.email });
   }
 }
