@@ -90,4 +90,58 @@ export default class FilesController {
       return handleError(res, 500, 'Error retrieving the file documents');
     }
   }
+
+  static async putPublish(req, res) {
+    const userId = req.user._id;
+    const fileId = req.params.id;
+
+    try {
+      const fileDocument = await dbClient.db.collection('files').findOne({
+        _id: ObjectId(fileId),
+        userId: ObjectId(userId),
+      });
+
+      if (!fileDocument) {
+        return handleError(res, 404, errorMessages.notFound);
+      }
+
+      fileDocument.isPublic = true;
+
+      await dbClient.db.collection('files').updateOne(
+        { _id: ObjectId(fileId) },
+        { $set: { isPublic: true } },
+      );
+
+      return res.status(200).json(fileDocument);
+    } catch (error) {
+      return handleError(res, 500, 'Error updating the file document');
+    }
+  }
+
+  static async putUnpublish(req, res) {
+    const userId = req.user._id;
+    const fileId = req.params.id;
+
+    try {
+      const fileDocument = await dbClient.db.collection('files').findOne({
+        _id: ObjectId(fileId),
+        userId: ObjectId(userId),
+      });
+
+      if (!fileDocument) {
+        return handleError(res, 404, errorMessages.notFound);
+      }
+
+      fileDocument.isPublic = false;
+
+      await dbClient.db.collection('files').updateOne(
+        { _id: ObjectId(fileId) },
+        { $set: { isPublic: false } },
+      );
+
+      return res.status(200).json(fileDocument);
+    } catch (error) {
+      return handleError(res, 500, 'Error updating the file document');
+    }
+  }
 }

@@ -29,6 +29,9 @@ const router = (api) => {
   api.get('/files/:id', authenticateUser, FilesController.getShow);
   api.get('/files', authenticateUser, FilesController.getIndex);
 
+  api.put('/files/:id/publish', authenticateUser, FilesController.putPublish);
+  api.put('/files/:id/unpublish', authenticateUser, FilesController.putUnpublish);
+
   api.use(handleError);
 };
 
