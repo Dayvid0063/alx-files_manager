@@ -1,4 +1,6 @@
 import { ObjectId } from 'mongodb';
+import mime from 'mime-types';
+import fs from 'fs';
 import dbClient from '../utils/db';
 import { generateFilePath, saveFile } from '../helper/fileHelper';
 import { handleError, errorMessages } from '../helper/errorHandler';
@@ -142,6 +144,43 @@ export default class FilesController {
       return res.status(200).json(fileDocument);
     } catch (error) {
       return handleError(res, 500, 'Error updating the file document');
+    }
+  }
+
+  static async getFile(req, res) {
+    const fileId = req.params.id;
+    const userId = req.user ? req.user._id : null;
+
+    try {
+      const fileDocument = await dbClient.db.collection('files').findOne({ _id: ObjectId(fileId) });
+
+      if (!fileDocument) {
+        return handleError(res, 404, errorMessages.notFound);
+      }
+
+      if (!fileDocument.isPublic && (!userId || !fileDocument.userId.equals(userId))) {
+        return handleError(res, 404, errorMessages.notFound);
+      }
+
+      if (fileDocument.type === 'folder') {
+        return handleError(res, 400, 'A folder doesn\'t have content');
+      }
+
+      if (!fs.existsSync(fileDocument.localPath)) {
+        return handleError(res, 404, errorMessages.notFound);
+      }
+
+      const mimeType = mime.lookup(fileDocument.name);
+      if (!mimeType) {
+        return handleError(res, 500, 'Error determining file MIME-type');
+      }
+
+      const fileContent = fs.readFileSync(fileDocument.localPath);
+
+      res.setHeader('Content-Type', mimeType);
+      return res.status(200).send(fileContent);
+    } catch (error) {
+      return handleError(res, 500, 'Error retrieving the file content');
     }
   }
 }

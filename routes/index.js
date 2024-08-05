@@ -28,6 +28,7 @@ const router = (api) => {
   api.post('/files', authenticateUser, FilesController.postUpload);
   api.get('/files/:id', authenticateUser, FilesController.getShow);
   api.get('/files', authenticateUser, FilesController.getIndex);
+  api.get('/files/:id/data', FilesController.getFile);
 
   api.put('/files/:id/publish', authenticateUser, FilesController.putPublish);
   api.put('/files/:id/unpublish', authenticateUser, FilesController.putUnpublish);
