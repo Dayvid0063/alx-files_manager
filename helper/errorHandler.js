@@ -10,4 +10,5 @@ export const errorMessages = {
   missingData: 'Missing data',
   parentNotFound: 'Parent not found',
   parentNotFolder: 'Parent is not a folder',
+  notFound: 'Not found',
 };
